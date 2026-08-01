@@ -1,0 +1,311 @@
+<!DOCTYPE html>
+<html>
+
+<style>
+/* Banner styles */
+
+.dropdown {
+  position: relative;
+  display: inline-block;
+}
+
+.slide-banner {
+	background-color: #2563eb;
+	color: #ffffff;
+	padding: 10px 20px;
+	font-family: sans-serif;
+	height: 50px;
+	display: flex;
+	gap: 5px;
+}
+
+.slide-switch {
+	background-color: #2563eb;
+	border: 1px solid #d1d5db;
+	padding: 12px 18px;
+	color: #ffffff;
+	font-size: 1.25rem;
+	cursor: pointer;
+	user-select: none;
+
+}
+
+.slide-switch input[type="radio"]:checked + span {
+  /* This ensures the style applies down to the text wrapper */
+}
+
+.slide-switch input[type="radio"] {
+	position: absolute;
+	opacity: 0;
+	width: 0;
+	height: 0;
+}
+
+.slide-switch:has(input[type="radio"]:checked) {
+	background-color: #ffffff;
+	border: 1px solid #d1d5db;
+	color: #2563eb;
+}
+
+.slide-switch:hover:not(:has(input[type="radio"]:checked)) {
+	background-color: #5583fb;
+	border: 1px solid #d1d5db;
+	color: #ffffff;
+}
+
+.slide-add {
+	background: #2563eb;
+	border: 1px solid #d1d5db;
+	padding: 12px 16px;
+	border-radius: 24px;
+	color: #ffffff;
+	font-size: 1.25rem;
+	cursor: pointer;
+}
+
+.slide-add:hover {
+	background: #ffffff;
+	border: 1px solid #d1d5db;
+	color: #2563eb;
+}
+
+
+/* Toolbar styles */
+.site-toolbar {
+	background-color: #f3f4f6;
+	padding: 8px 16px;
+	display: flex;
+	gap: 8px;
+	border-bottom: 1px solid #e5e7eb;
+	height: 30px;
+}
+
+.tool-btn {
+	background-color: #ffffff;
+	border: 1px solid #d1d5db;
+    width: 100px;
+	padding: 6px 12px;
+	border-radius: 4px;
+	cursor: pointer;
+    z-index: 1;
+}
+
+.tool-btn:hover {
+	background-color: #e5e7eb;
+	display: block;
+}
+.drop-btn:hover {
+	background-color: #e5e7eb;
+}
+.dropdown:hover .hidden {
+	display: block;
+}
+.tool-btn:focus {
+	background-color: #e0e2e9;
+}
+
+.hidden {
+  display: none;
+  position: absolute;
+  background-color: #ffffff;
+  min-width: 100px;
+  box-shadow: 0px 8px 16px 0px rgba(0,0,0,0.2);
+  z-index: 1;
+  border-radius: 4px;
+}
+
+.drop-btn {
+	background-color: #ffffff;
+	border: 1px solid #d1d5db;
+    width: 100px;
+	padding: 6px 12px;
+	border-radius: 4px;
+	cursor: pointer;
+    z-index: 1;
+	display: block;
+}
+
+.scene {
+	position: absolute;
+	top: 120px; /* Match toolbar height */
+	right: 5;
+	width: calc(100vw - 20px);
+	height: calc(100vh - 120px);
+}
+
+</style>
+
+<dialog id="myDialog">
+	<form method="dialog">
+		<label>Enter value: <input type="text" id="userInput" /></label>
+		<button id="okBtn" value="default">OK</button>
+	</form>
+</dialog>
+
+<!-- Will be used to switch slides -->
+<div class="slide-banner">
+	<label class="slide-switch"><input type="radio" name="slide" onclick="modelop = 1; modelEntity.setAttribute('gltf-model', '#model' + String(modelop));"> 1 </button></label>
+	<label class="slide-switch"><input type="radio" name="slide" onclick="modelop = 2; modelEntity.setAttribute('gltf-model', '#model' + String(modelop));"> 2 </button></label>
+	<label class="slide-switch"><input type="radio" name="slide" onclick="modelop = 3; modelEntity.setAttribute('gltf-model', '#model' + String(modelop));"> 3 </button></label>
+	<label class="slide-switch"><input type="radio" name="slide" onclick="modelop = 4; modelEntity.setAttribute('gltf-model', '#model' + String(modelop));"> 4 </button></label>
+	<button class="slide-add"> + </button>
+</div>
+
+	<head>
+	<title>3D Model (glTF)</title>
+	<script src="https://aframe.io/releases/1.8.0/aframe.min.js"></script>
+	</head>
+	<body>
+		<a-scene 
+		cursor="rayOrigin: mouse"
+		background="color: #ECECEC"
+		embedded
+		class="scene">
+			<a-assets>
+			<a-asset-item id="model1" src="https://raw.githubusercontent.com/KhronosGroup/glTF-Sample-Models/refs/heads/main/2.0/Avocado/glTF/Avocado.gltf"></a-asset-item>
+			<a-asset-item id="model2" src="https://raw.githubusercontent.com/KhronosGroup/glTF-Sample-Models/refs/heads/main/2.0/AntiqueCamera/glTF/AntiqueCamera.gltf"></a-asset-item>
+			<a-asset-item id="model3" src="https://raw.githubusercontent.com/KhronosGroup/glTF-Sample-Models/refs/heads/main/2.0/BarramundiFish/glTF/BarramundiFish.gltf"></a-asset-item>
+			<a-asset-item id="model4" src="https://raw.githubusercontent.com/KhronosGroup/glTF-Sample-Models/refs/heads/main/2.0/BoomBox/glTF/BoomBox.gltf"></a-asset-item>
+			</a-assets>
+			<a-entity
+			position="0 0 0"
+			rotation="0 0 0"
+			scale="0.5 0.5 0.5"
+			gltf-model="#model1"
+			></a-entity>
+			<a-image
+			src='https://raw.githubusercontent.com/Schnaz/AR_Test/refs/heads/main/pattern-Test.png'
+			position="0 0 0"
+			rotation="-90 0 0"
+			width="1"
+			height="1">
+			</a-image>
+			<a-plane
+			id="xyplane"
+			position="0 0.1 0"
+			rotation="-90 0 0"
+			scale="5 5 5"
+			color="#000000"
+			material="opacity: 0.5; transparent: true;">
+			</a-plane>
+			<a-camera 
+			wasd-controls="fly: false"
+			position="0 2 5"
+            rotation="0 0 -90">
+			</a-camera>
+		</a-scene>
+
+<script>
+let slides= [[]];
+let slide=0;
+let item=0; //insert item
+let mode=4; //tool mode: 0=insert, 1=position, 2=rotate, 3=scale, 4=view
+const scene = document.querySelector('a-scene');
+let modelop = 1;
+let modelops = ["model1", "model2", "model3", "model4"]
+const dialog = document.getElementById('myDialog');
+const input = document.getElementById('userInput');
+
+function askUser() {
+  return new Promise((resolve) => {
+    dialog.showModal();
+    dialog.onclose = () => resolve(input.value);
+  });
+}
+
+function createEntity(x, y, z, rx, ry, rz, sx, sy, sz, type, string) {
+
+}
+async function insertEntity(x, y, z, type) {
+switch(type) {
+	case 0: //undefined
+	break;
+	case 1: //text
+		model = document.createElement('a-text');
+		value = await askUser();
+		model.setAttribute('value', value);
+		model.setAttribute('position', { x: x, y: y, z: z });
+		model.setAttribute('scale', { x: 1, y: 1, z: 1 });
+		model.setAttribute('rotation', { x: -90, y: 0, z: 0 });
+		model.setAttribute('color', '#000000');
+		slides[slide].push([type, x, y, z, 1, 1, 1, 0, 0, 0, value]);
+		scene.append(model);
+
+	break;
+	case 2: //model
+		model = document.createElement('a-gltf-model');
+		value = await askUser();
+		model.setAttribute('src', value);
+		model.setAttribute('position', { x: x, y: y, z: z });
+		model.setAttribute('scale', { x: 1, y: 1, z: 1 });
+		slides[slide].push([type, x, y, z, 1, 1, 1, 0, 0, 0, value]);
+		scene.append(model);
+	break;
+	case 3: //arrows
+	break;
+	case 4: //box
+	break;
+}
+mode = 4;
+}
+function saveShow() {
+
+}
+function loadShow() {
+
+}
+document.querySelector('#xyplane').addEventListener('click', (evt) => {
+	// evt.detail.intersection.point gives the exact Vector3 (x, y, z)
+	if (mode==0) {
+		let point = evt.detail.intersection.point;
+		console.log(`X: ${point.x}, Y: ${point.y}, Z: ${point.z}`);
+		insertEntity(point.x, point.y, point.z, item);
+	}
+});
+  
+const modelEntity = document.querySelector('a-entity');
+
+document.addEventListener('keydown', function(event) {
+	if (event.code === 'Minus') {
+		if (modelop>1) modelop-=1;
+		modelEntity.setAttribute('gltf-model', "#model" + String(modelop));
+	}
+});
+document.addEventListener('keydown', function(event) {
+	if (event.code === 'Equal') {
+		if (modelop<4) modelop+=1;
+		modelEntity.setAttribute('gltf-model', "#model" + String(modelop));
+	}
+});
+</script>
+
+			<!-- Toolbar -->
+			<div class="site-toolbar" role="toolbar" aria-label="User Actions">
+			<div class="dropdown">
+				<button class="tool-btn">File</button>
+				<div class="hidden">
+				<button class="drop-btn">Open</button>
+				<button class="drop-btn">Save</button>
+				</div>
+			</div>
+			<div class="dropdown">
+				<button class="tool-btn">Insert</button>
+				<div class="hidden">
+				<button class="drop-btn" onclick="mode = 0; item = 1">Text</button>
+				<button class="drop-btn" onclick="mode = 0; item = 2">Model</button>
+				<button class="drop-btn" onclick="mode = 0; item = 3">Arrow</button>
+				<button class="drop-btn" onclick="mode = 0; item = 4">Box</button>
+				</div>
+			</div>
+			<div class="dropdown">
+				<button class="tool-btn">Tool</button>
+				<div class="hidden">
+				<button class="drop-btn" onclick="mode = 1;">Move</button>
+				<button class="drop-btn" onclick="mode = 2;">Rotate</button>
+				<button class="drop-btn" onclick="mode = 3;">Scale</button>
+				<button class="drop-btn" onclick="mode = 4;">View</button>
+				</div>
+			</div>
+		</div>
+	</body>
+</html>
