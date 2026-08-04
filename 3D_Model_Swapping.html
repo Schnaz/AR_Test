@@ -30,10 +30,6 @@
 
 }
 
-.slide-switch input[type="radio"]:checked + span {
-  /* This ensures the style applies down to the text wrapper */
-}
-
 .slide-switch input[type="radio"] {
 	position: absolute;
 	opacity: 0;
@@ -129,16 +125,51 @@
 	position: absolute;
 	top: 120px; /* Match toolbar height */
 	right: 5;
-	width: calc(100vw - 20px);
+	width: calc(100vw - 15px);
 	height: calc(100vh - 120px);
 }
 
+dialog {
+	position: absolute;
+	right: 10;
+	top: 120;
+	margin-right: 8px;
+	margin-top: 120px;
+	border: none;
+	background-color: #dddddd;
+	box-shadow: -5px 5px 5px rgba(0, 0, 0, 0.2);
+}
+
+.form-element {
+	line-height: 1.0;
+	margin-bottom: 10px;
+}
+pre { tab-size: 4; }
 </style>
 
-<dialog id="myDialog">
-	<form method="dialog">
-		<label>Enter value: <input type="text" id="userInput" /></label>
-		<button id="okBtn" value="default">OK</button>
+<dialog id="Dialog">
+	<form method="dialog" style="text-align: right;" id="dForm">
+		<h1 id="dName" style="text-align: center;"> Element </h1>
+		<div id="dURL" class="form-element">ModelURL	: <input type="url" style="width: 175px;" id="urlInput"/> <br>
+		<button id="upBtn" value="default" style="width: 185px;">update</button> <br> </div>
+		<div id="dText" class="form-element">Text		: <input type="text" style="width: 175px;" id="textInput" /> <br> 
+		Wrap Count	: <input type="number" style="width: 50px;" value="0" step="1" id="wrapCount" /> <br> </div>
+		<div id="dColor" class="form-element">Color	: <input type="color"> </div>
+		<div id="dPos" class="form-element">Position	: 
+			<input type="number" style="width: 50px;" value="0" step="any" name="x" />
+			<input type="number" style="width: 50px;" value="0" step="any" name="y" />
+			<input type="number" style="width: 50px;" value="0" step="any" name="z" /> <br> </div>
+		<div id="dRot" class="form-element">Rotation	: 
+			<input type="number" style="width: 50px;" value="0" step="any" name="x" />
+			<input type="number" style="width: 50px;" value="0" step="any" name="y" />
+			<input type="number" style="width: 50px;" value="0" step="any" name="z" /> <br> </div>
+		<div id="dSiz" class="form-element">Scale	:
+			<input type="number" style="width: 50px;" value="1" step="any" name="x" />
+			<input type="number" style="width: 50px;" value="1" step="any" name="y" />
+			<input type="number" style="width: 50px;" value="1" step="any" name="z" /> <br> </div>
+		<div id="dExit" class="form-element">
+		<button id="okBtn" value="default">ADD</button>
+		<button id="exitBtn">EXIT</button> </div>
 	</form>
 </dialog>
 
@@ -202,9 +233,70 @@ let item=0; //insert item
 let mode=4; //tool mode: 0=insert, 1=position, 2=rotate, 3=scale, 4=view
 const scene = document.querySelector('a-scene');
 let modelop = 1;
+let hologram = 0;
 let modelops = ["model1", "model2", "model3", "model4"]
-const dialog = document.getElementById('myDialog');
-const input = document.getElementById('userInput');
+const dialog = document.getElementById('Dialog');
+const form = document.getElementById('dForm');
+const dName = document.getElementById('dName');
+const dURL = document.getElementById('dURL');
+const dText = document.getElementById('dText');
+const dCol = document.getElementById('dCol');
+const dPos = document.getElementById('dPos');
+const dRot = document.getElementById('dRot');
+const dSiz = document.getElementById('dSiz');
+const dExit = document.getElementById('dExit');
+let elemlist=[];
+
+function closeEdit() {
+	for (const elem of document.querySelectorAll('.form-element')) {
+		form.removeChild(elem);
+	}
+	hologram.remove();
+}
+(function() {
+for (const elem of document.querySelectorAll('.form-element')) {
+	form.removeChild(elem);
+}
+})();
+
+function newEdit(type) {
+	if (dialog.open) closeEdit();
+	switch (type) {
+		case "a-text":
+		dName.textContent = "Text"
+		elemlist = [dText, dPos, dRot, dSiz, dExit];
+		break;
+		case "a-gltf-model":
+		dName.textContent = "Model"
+		elemlist = [dURL, dPos, dRot, dSiz, dExit];
+		break;
+		case "a-box":
+		dName.textContent = "Box"
+		elemlist = [dPos, dRot, dSiz, dExit];
+		break;
+	}
+	//possibly put reinitialization code here
+	form.append(...elemlist);
+	hologram = document.createElement(type);
+	dialog.showModal();
+	scene.append(hologram);
+	hologram.setAttribute('material', { opacity: 0.5, transparent: true })
+}
+
+function getValues(elem) {
+
+	//return values = Array.from(elem.querySelectorAll('input')).map(input => input.value);
+	return Array.from(elem.querySelectorAll('input'), input => input.value);
+}
+
+dialog.addEventListener('input', (event) => {
+		let xyz = getValues(dPos);
+		hologram.setAttribute('position', { x: xyz[0], y: xyz[1], z: xyz[2] });
+		xyz = getValues(dRot);
+		hologram.setAttribute('rotation', { x: xyz[0], y: xyz[1], z: xyz[2] });
+		xyz = getValues(dSiz);
+		hologram.setAttribute('scale', { x: xyz[0], y: xyz[1], z: xyz[2] });
+});
 
 function askUser() {
   return new Promise((resolve) => {
@@ -225,7 +317,7 @@ switch(type) {
 		value = await askUser();
 		model.setAttribute('value', value);
 		model.setAttribute('position', { x: x, y: y, z: z });
-		model.setAttribute('scale', { x: 1, y: 1, z: 1 });
+		model.setAttribute('scale', { x: 0.1, y: 1, z: 1 });
 		model.setAttribute('rotation', { x: -90, y: 0, z: 0 });
 		model.setAttribute('color', '#000000');
 		slides[slide].push([type, x, y, z, 1, 1, 1, 0, 0, 0, value]);
@@ -265,6 +357,24 @@ document.querySelector('#xyplane').addEventListener('click', (evt) => {
   
 const modelEntity = document.querySelector('a-entity');
 
+window.addEventListener('mousemove', (event) => {
+  const x = event.clientX;
+  const y = event.clientY;
+  console.log(`Viewport coordinates: X=${x}, Y=${y}`);
+});
+
+window.addEventListener('mousemove', (event) => {
+  const x = event.clientX;
+  const y = event.clientY;
+  console.log(`Viewport coordinates: X=${x}, Y=${y}`);
+});
+
+window.addEventListener('mousemove', (event) => {
+  const x = event.clientX;
+  const y = event.clientY;
+  console.log(`Viewport coordinates: X=${x}, Y=${y}`);
+});
+
 document.addEventListener('keydown', function(event) {
 	if (event.code === 'Minus') {
 		if (modelop>1) modelop-=1;
@@ -291,10 +401,10 @@ document.addEventListener('keydown', function(event) {
 			<div class="dropdown">
 				<button class="tool-btn">Insert</button>
 				<div class="hidden">
-				<button class="drop-btn" onclick="mode = 0; item = 1">Text</button>
-				<button class="drop-btn" onclick="mode = 0; item = 2">Model</button>
-				<button class="drop-btn" onclick="mode = 0; item = 3">Arrow</button>
-				<button class="drop-btn" onclick="mode = 0; item = 4">Box</button>
+				<button class="drop-btn" onclick="newEdit('a-text')//mode = 0; item = 1">Text</button>
+				<button class="drop-btn" onclick="newEdit('a-gltf-model')//mode = 0; item = 2">Model</button>
+				<button class="drop-btn" onclick="newEdit()//mode = 0; item = 3">Arrow</button>
+				<button class="drop-btn" onclick="newEdit('a-box')//mode = 0; item = 4">Box</button>
 				</div>
 			</div>
 			<div class="dropdown">
