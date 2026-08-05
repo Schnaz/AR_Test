@@ -130,11 +130,12 @@
 }
 
 dialog {
+	z-index: 1;
 	position: absolute;
 	right: 10;
-	top: 120;
+	top: 112;
 	margin-right: 8px;
-	margin-top: 120px;
+	margin-top: 112px;
 	border: none;
 	background-color: #dddddd;
 	box-shadow: -5px 5px 5px rgba(0, 0, 0, 0.2);
@@ -150,11 +151,10 @@ pre { tab-size: 4; }
 <dialog id="Dialog">
 	<form method="dialog" style="text-align: right;" id="dForm">
 		<h1 id="dName" style="text-align: center;"> Element </h1>
-		<div id="dURL" class="form-element">ModelURL	: <input type="url" style="width: 175px;" id="urlInput"/> <br>
-		<button id="upBtn" value="default" style="width: 185px;">update</button> <br> </div>
+		<div id="dURL" class="form-element">ModelURL	: <input type="url" style="width: 175px;" id="urlInput"/> <br> </div>
 		<div id="dText" class="form-element">Text		: <input type="text" style="width: 175px;" id="textInput" /> <br> 
-		Wrap Count	: <input type="number" style="width: 50px;" value="0" step="1" id="wrapCount" /> <br> </div>
-		<div id="dColor" class="form-element">Color	: <input type="color"> </div>
+		Wrap Count	: <input type="number" style="width: 50px;" value="50" step="1" id="wrapCount" /> <br> </div>
+		<div id="dCol" class="form-element">Color	: <input type="color"> </div>
 		<div id="dPos" class="form-element">Position	: 
 			<input type="number" style="width: 50px;" value="0" step="any" name="x" />
 			<input type="number" style="width: 50px;" value="0" step="any" name="y" />
@@ -168,8 +168,8 @@ pre { tab-size: 4; }
 			<input type="number" style="width: 50px;" value="1" step="any" name="y" />
 			<input type="number" style="width: 50px;" value="1" step="any" name="z" /> <br> </div>
 		<div id="dExit" class="form-element">
-		<button id="okBtn" value="default">ADD</button>
-		<button id="exitBtn">EXIT</button> </div>
+		<button type="button" id="okBtn" value="default" onClick="holo2elem();">ADD</button>
+		<button id="exitBtn" onClick="closeEdit();">EXIT</button> </div>
 	</form>
 </dialog>
 
@@ -213,7 +213,7 @@ pre { tab-size: 4; }
 			</a-image>
 			<a-plane
 			id="xyplane"
-			position="0 0.1 0"
+			position="0 -0.01 0"
 			rotation="-90 0 0"
 			scale="5 5 5"
 			color="#000000"
@@ -227,7 +227,7 @@ pre { tab-size: 4; }
 		</a-scene>
 
 <script>
-let slides= [[]];
+let slides= [[], [], [], []];
 let slide=0;
 let item=0; //insert item
 let mode=4; //tool mode: 0=insert, 1=position, 2=rotate, 3=scale, 4=view
@@ -245,6 +245,7 @@ const dPos = document.getElementById('dPos');
 const dRot = document.getElementById('dRot');
 const dSiz = document.getElementById('dSiz');
 const dExit = document.getElementById('dExit');
+
 let elemlist=[];
 
 function closeEdit() {
@@ -252,6 +253,7 @@ function closeEdit() {
 		form.removeChild(elem);
 	}
 	hologram.remove();
+	dialog.close();
 }
 (function() {
 for (const elem of document.querySelectorAll('.form-element')) {
@@ -259,28 +261,63 @@ for (const elem of document.querySelectorAll('.form-element')) {
 }
 })();
 
+function holo2elem() {
+	const clone = hologram.cloneNode(true);
+	xyz = getValues(dPos);
+	clone.setAttribute('position', { x: xyz[0], y: xyz[1], z: xyz[2] });
+	xyz = getValues(dRot);
+	clone.setAttribute('rotation', { x: xyz[0], y: xyz[1], z: xyz[2] });
+	xyz = getValues(dSiz);
+	clone.setAttribute('scale', { x: xyz[0], y: xyz[1], z: xyz[2] });
+	scene.append(clone);
+	slides[slide].push(clone);
+}
+
+function elem2holo() { //TODO this needs to be set up to do the reverse
+	const clone = hologram.cloneNode(true);
+	xyz = getValues(dPos);
+	clone.setAttribute('position', { x: xyz[0], y: xyz[1], z: xyz[2] });
+	xyz = getValues(dRot);
+	clone.setAttribute('rotation', { x: xyz[0], y: xyz[1], z: xyz[2] });
+	xyz = getValues(dSiz);
+	clone.setAttribute('scale', { x: xyz[0], y: xyz[1], z: xyz[2] });
+	scene.append(clone);
+	slides[slide].push(clone);
+}
+
 function newEdit(type) {
 	if (dialog.open) closeEdit();
+	hologram = document.createElement(type);
 	switch (type) {
 		case "a-text":
 		dName.textContent = "Text"
-		elemlist = [dText, dPos, dRot, dSiz, dExit];
+		elemlist = [dText, dCol, dPos, dRot, dSiz, dExit];
+		hologram.setAttribute('align', 'center');
 		break;
 		case "a-gltf-model":
 		dName.textContent = "Model"
-		elemlist = [dURL, dPos, dRot, dSiz, dExit];
+		elemlist = [dURL, dCol, dPos, dRot, dSiz, dExit];
 		break;
 		case "a-box":
 		dName.textContent = "Box"
-		elemlist = [dPos, dRot, dSiz, dExit];
+		elemlist = [dPos, dCol, dRot, dSiz, dExit];
 		break;
 	}
 	//possibly put reinitialization code here
 	form.append(...elemlist);
-	hologram = document.createElement(type);
-	dialog.showModal();
+	dialog.show();
+	
 	scene.append(hologram);
+	xyz = getValues(dPos);
+	hologram.setAttribute('position', { x: xyz[0], y: xyz[1], z: xyz[2] });
+	xyz = getValues(dRot);
+	hologram.setAttribute('rotation', { x: xyz[0], y: xyz[1], z: xyz[2] });
+	xyz = getValues(dSiz);
+	hologram.setAttribute('scale', { x: xyz[0], y: xyz[1], z: xyz[2] });
+	xyz = getValues(dCol);
+	hologram.setAttribute('color', xyz[0]);
 	hologram.setAttribute('material', { opacity: 0.5, transparent: true })
+	//el.setAttribute('material', 'color', 'red');
 }
 
 function getValues(elem) {
@@ -290,12 +327,41 @@ function getValues(elem) {
 }
 
 dialog.addEventListener('input', (event) => {
-		let xyz = getValues(dPos);
-		hologram.setAttribute('position', { x: xyz[0], y: xyz[1], z: xyz[2] });
-		xyz = getValues(dRot);
-		hologram.setAttribute('rotation', { x: xyz[0], y: xyz[1], z: xyz[2] });
-		xyz = getValues(dSiz);
-		hologram.setAttribute('scale', { x: xyz[0], y: xyz[1], z: xyz[2] });
+	let xyz = [];
+	switch(event.target.parentElement) {
+		case dText:
+			xyz = getValues(dText);
+			hologram.setAttribute('value', xyz[0]);
+			hologram.setAttribute('wrap-count', xyz[1]);
+		break;
+		case dURL:
+			xyz = getValues(dURL);
+			hologram.setAttribute('src', xyz[0]);
+			//hologram.setAttribute('wrapCount', xyz[1]);
+		break;
+		case dPos:
+			xyz = getValues(dPos);
+			hologram.setAttribute('position', { x: xyz[0], y: xyz[1], z: xyz[2] });
+		break;
+		case dRot:
+			xyz = getValues(dRot);
+			hologram.setAttribute('rotation', { x: xyz[0], y: xyz[1], z: xyz[2] });
+		break;
+		case dSiz:
+			xyz = getValues(dSiz);
+			hologram.setAttribute('scale', { x: xyz[0], y: xyz[1], z: xyz[2] });
+		break;
+		case dCol:
+			xyz = getValues(dCol);
+			hologram.setAttribute('color', xyz[0]);
+		break;
+	}
+		//xyz = getValues(dPos);
+		//hologram.setAttribute('position', { x: xyz[0], y: xyz[1], z: xyz[2] });
+		//xyz = getValues(dRot);
+		//hologram.setAttribute('rotation', { x: xyz[0], y: xyz[1], z: xyz[2] });
+		//xyz = getValues(dSiz);
+		//hologram.setAttribute('scale', { x: xyz[0], y: xyz[1], z: xyz[2] });
 });
 
 function askUser() {
@@ -346,14 +412,14 @@ function saveShow() {
 function loadShow() {
 
 }
-document.querySelector('#xyplane').addEventListener('click', (evt) => {
-	// evt.detail.intersection.point gives the exact Vector3 (x, y, z)
-	if (mode==0) {
-		let point = evt.detail.intersection.point;
-		console.log(`X: ${point.x}, Y: ${point.y}, Z: ${point.z}`);
-		insertEntity(point.x, point.y, point.z, item);
-	}
-});
+// document.querySelector('#xyplane').addEventListener('click', (evt) => {
+// 	// evt.detail.intersection.point gives the exact Vector3 (x, y, z)
+// 	if (mode==0) {
+// 		let point = evt.detail.intersection.point;
+// 		console.log(`X: ${point.x}, Y: ${point.y}, Z: ${point.z}`);
+// 		insertEntity(point.x, point.y, point.z, item);
+// 	}
+// });
   
 const modelEntity = document.querySelector('a-entity');
 
