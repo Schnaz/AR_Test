@@ -175,11 +175,9 @@ pre { tab-size: 4; }
 
 <!-- Will be used to switch slides -->
 <div class="slide-banner">
-	<label class="slide-switch"><input type="radio" name="slide" onclick="modelop = 1; modelEntity.setAttribute('gltf-model', '#model' + String(modelop));"> 1 </button></label>
-	<label class="slide-switch"><input type="radio" name="slide" onclick="modelop = 2; modelEntity.setAttribute('gltf-model', '#model' + String(modelop));"> 2 </button></label>
-	<label class="slide-switch"><input type="radio" name="slide" onclick="modelop = 3; modelEntity.setAttribute('gltf-model', '#model' + String(modelop));"> 3 </button></label>
-	<label class="slide-switch"><input type="radio" name="slide" onclick="modelop = 4; modelEntity.setAttribute('gltf-model', '#model' + String(modelop));"> 4 </button></label>
-	<button class="slide-add"> + </button>
+	<label class="slide-switch"><input value=0 type="radio" name="slide" onclick="slideSwitch(this.value);"> 1 </label>
+	<button class="slide-add" onClick=newSlide()>
+		+</button>
 </div>
 
 	<head>
@@ -192,18 +190,14 @@ pre { tab-size: 4; }
 		background="color: #ECECEC"
 		embedded
 		class="scene">
+			<!--
 			<a-assets>
 			<a-asset-item id="model1" src="https://raw.githubusercontent.com/KhronosGroup/glTF-Sample-Models/refs/heads/main/2.0/Avocado/glTF/Avocado.gltf"></a-asset-item>
 			<a-asset-item id="model2" src="https://raw.githubusercontent.com/KhronosGroup/glTF-Sample-Models/refs/heads/main/2.0/AntiqueCamera/glTF/AntiqueCamera.gltf"></a-asset-item>
 			<a-asset-item id="model3" src="https://raw.githubusercontent.com/KhronosGroup/glTF-Sample-Models/refs/heads/main/2.0/BarramundiFish/glTF/BarramundiFish.gltf"></a-asset-item>
 			<a-asset-item id="model4" src="https://raw.githubusercontent.com/KhronosGroup/glTF-Sample-Models/refs/heads/main/2.0/BoomBox/glTF/BoomBox.gltf"></a-asset-item>
 			</a-assets>
-			<a-entity
-			position="0 0 0"
-			rotation="0 0 0"
-			scale="0.5 0.5 0.5"
-			gltf-model="#model1"
-			></a-entity>
+			-->
 			<a-image
 			src='https://raw.githubusercontent.com/Schnaz/AR_Test/refs/heads/main/pattern-Test.png'
 			position="0 0 0"
@@ -222,12 +216,13 @@ pre { tab-size: 4; }
 			<a-camera 
 			wasd-controls="fly: false"
 			position="0 2 5"
-            rotation="0 0 -90">
+            rotation="0 0 -90"
+			vertical-controls>
 			</a-camera>
 		</a-scene>
 
 <script>
-let slides= [[], [], [], []];
+let slides= [[]];
 let slide=0;
 let item=0; //insert item
 let mode=4; //tool mode: 0=insert, 1=position, 2=rotate, 3=scale, 4=view
@@ -247,6 +242,27 @@ const dSiz = document.getElementById('dSiz');
 const dExit = document.getElementById('dExit');
 
 let elemlist=[];
+
+function newSlide() {
+	slides.push([]);
+	num = slides.length;
+	const ele = `<label class="slide-switch"><input value=${num - 1} type="radio" name="slide" onclick="slideSwitch(this.value);"> ${num} </label>`;
+	document.querySelector('.slide-add').insertAdjacentHTML('beforebegin', ele);
+	ele.textContent = '' + slides.length;
+}
+
+function slideSwitch(slideTo) {
+	//alert(slide + ' ' + slides[slide]);
+	for (elem of slides[slide]) {
+		elem = scene.remove(elem);
+		//alert(i);
+	}
+	for (elem of slides[slideTo]) {
+		scene.add(elem);
+	}
+	slide = slideTo;
+	//alert(slideTo + ' ' + slides[slide]);
+}
 
 function closeEdit() {
 	for (const elem of document.querySelectorAll('.form-element')) {
@@ -271,6 +287,7 @@ function holo2elem() {
 	clone.setAttribute('scale', { x: xyz[0], y: xyz[1], z: xyz[2] });
 	scene.append(clone);
 	slides[slide].push(clone);
+	//alert(slide + ' ' + slides[slide]);
 }
 
 function elem2holo() { //TODO this needs to be set up to do the reverse
@@ -424,21 +441,9 @@ function loadShow() {
 const modelEntity = document.querySelector('a-entity');
 
 window.addEventListener('mousemove', (event) => {
-  const x = event.clientX;
-  const y = event.clientY;
-  console.log(`Viewport coordinates: X=${x}, Y=${y}`);
-});
-
-window.addEventListener('mousemove', (event) => {
-  const x = event.clientX;
-  const y = event.clientY;
-  console.log(`Viewport coordinates: X=${x}, Y=${y}`);
-});
-
-window.addEventListener('mousemove', (event) => {
-  const x = event.clientX;
-  const y = event.clientY;
-  console.log(`Viewport coordinates: X=${x}, Y=${y}`);
+	const x = event.clientX;
+	const y = event.clientY;
+	console.log(`Viewport coordinates: X=${x}, Y=${y}`);
 });
 
 document.addEventListener('keydown', function(event) {
@@ -451,6 +456,27 @@ document.addEventListener('keydown', function(event) {
 	if (event.code === 'Equal') {
 		if (modelop<4) modelop+=1;
 		modelEntity.setAttribute('gltf-model', "#model" + String(modelop));
+	}
+});
+
+AFRAME.registerComponent('vertical-controls', {
+	schema: { speed: { default: 0.2 } },
+	init: function () {
+		this.dir = new THREE.Vector3();
+		window.addEventListener('keydown', (e) => {
+			this.dir.y = (e.code == 'Space') - (e.code == 'ShiftLeft')
+		});
+		window.addEventListener('keyup', (e) => {
+			if (e.code == 'Space') this.dir.y = 0;
+			if (e.code == 'ShiftLeft') this.dir.y = 0;
+		});
+	},
+	tick: function (time, delta) {
+		if (this.dir.y !== 0) {
+			let pos = this.el.getAttribute('position');
+			pos.y += this.dir.y * (this.data.speed * (delta / 50));
+			this.el.setAttribute('position', pos);
+		}
 	}
 });
 </script>
